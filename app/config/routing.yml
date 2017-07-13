@@ -1,0 +1,7 @@
+api:
+    type: rest
+    resource: '@AppBundle/Resources/config/routing.yml'
+
+fos_rest:
+    routing_loader:
+        default_format: json

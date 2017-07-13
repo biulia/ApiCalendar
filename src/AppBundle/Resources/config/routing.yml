@@ -1,0 +1,31 @@
+api_demo_add:
+    path:  /add/{date}
+    defaults: { _controller: AppBundle:Api/Actions:add, _format: ~ }
+    requirements:
+    method: ["GET"]
+#
+#api_demo_select:
+#    path:  /add/{date}
+#    defaults: { _controller: AppBundle:Api\Actions:select, _format: ~ }
+#    requirements:
+#        _method: GET
+#
+#api_demo_select_date:
+#    path:  /select_date/{id}
+#    defaults: { _controller: AppBundle:Api\Actions:select, _format: ~ }
+#    requirements:
+#        _method: GET
+#        id: "\d+"
+#
+#api_demo_update:
+#    path:  /update/{id}
+#    defaults: { _controller: AppBundle:Api\Actions:update, _format: ~ }
+#    requirements:
+#        _method: POST
+#
+#api_demo_delete:
+#    path:  /delete/{id}
+#    defaults: { _controller: AppBundle:Api\Actions:delete, _format: ~ }
+#    requirements:
+#        _method: DELETE
+
