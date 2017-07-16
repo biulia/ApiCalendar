@@ -43,9 +43,9 @@ class Events
     private $startTime;
 
     /**
-     * @var \DateTime
+     * @var int
      *
-     * @ORM\Column(name="end_time", type="datetime", nullable=true)
+     * @ORM\Column(name="end_time", type="integer", nullable=true)
      */
     private $endTime;
 
@@ -149,7 +149,7 @@ class Events
     /**
      * Set endTime
      *
-     * @param \DateTime $endTime
+     * @param int $endTime
      *
      * @return Events
      */
@@ -163,7 +163,7 @@ class Events
     /**
      * Get endTime
      *
-     * @return \DateTime
+     * @return int
      */
     public function getEndTime()
     {
@@ -218,4 +218,3 @@ class Events
         return $this->location;
     }
 }
-

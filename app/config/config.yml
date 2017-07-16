@@ -8,11 +8,20 @@ imports:
 parameters:
     locale: en
 
+fos_comment:
+    db_driver: orm
+    class:
+        model:
+            comment: AppBundle\Entity\Comment
+            thread: AppBundle\Entity\Thread
+
+#assetic:
+#    bundles: [ "FOSCommentBundle" ]
 framework:
     #esi: ~
     #translator: { fallbacks: ['%locale%'] }
     secret: '%secret%'
-#    serializer: true
+    serializer: { enable_annotations: true }
     router:
         resource: '%kernel.project_dir%/app/config/routing.yml'
         strict_requirements: ~
@@ -68,3 +77,6 @@ swiftmailer:
     username: '%mailer_user%'
     password: '%mailer_password%'
     spool: { type: memory }
+
+imports:
+    - { resource: "@AppBunde/Resources/config/services.yml" }

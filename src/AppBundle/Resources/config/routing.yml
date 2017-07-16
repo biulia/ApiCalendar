@@ -1,31 +1,36 @@
-api_demo_add:
+calendar_api_add:
     path:  /add/{date}
-    defaults: { _controller: AppBundle:Api/Actions:add, _format: ~ }
+    defaults: { _controller: AppBundle:Api/Actions:add, _format: json }
+    requirements:
+    method: ["POST"]
+
+calendar_api_select:
+    path:  /selectAll
+    defaults: { _controller: AppBundle:Api\Actions:select, _format: json }
     requirements:
     method: ["GET"]
-#
-#api_demo_select:
-#    path:  /add/{date}
-#    defaults: { _controller: AppBundle:Api\Actions:select, _format: ~ }
-#    requirements:
-#        _method: GET
-#
-#api_demo_select_date:
-#    path:  /select_date/{id}
-#    defaults: { _controller: AppBundle:Api\Actions:select, _format: ~ }
-#    requirements:
-#        _method: GET
-#        id: "\d+"
-#
-#api_demo_update:
-#    path:  /update/{id}
-#    defaults: { _controller: AppBundle:Api\Actions:update, _format: ~ }
-#    requirements:
-#        _method: POST
-#
-#api_demo_delete:
-#    path:  /delete/{id}
-#    defaults: { _controller: AppBundle:Api\Actions:delete, _format: ~ }
-#    requirements:
-#        _method: DELETE
+
+calendar_api_select_event:
+    path:  /select_event/{id}
+    defaults: { _controller: AppBundle:Api\Actions:selectOne, _format: json }
+    requirements:
+    method: ["GET"]
+
+calendar_api_update_single:
+    path:  /updateEvent/{id}
+    defaults: { _controller: AppBundle:Api\Actions:updateHourEvent, _format: json }
+    requirements:
+    method: ["PATCH"]
+
+calendar_api_update_full:
+    path:  /update/{id}
+    defaults: { _controller: AppBundle:Api\Actions:updateEvent, _format: json }
+    requirements:
+    method: ["PUT"]
+
+calendar_api_delete:
+    path:  /delete/{id}
+    defaults: { _controller: AppBundle:Api\Actions:delete, _format: json }
+    requirements:
+    method: ["DELETE"]
 

@@ -1,7 +1,6 @@
+home:
+    path:     /home
+    defaults: { _controller: AppBundle:Default:index }
 api:
     type: rest
     resource: '@AppBundle/Resources/config/routing.yml'
-
-fos_rest:
-    routing_loader:
-        default_format: json
