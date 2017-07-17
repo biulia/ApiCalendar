@@ -63,7 +63,9 @@ class Events
      */
     private $location;
 
-
+    public function __construct() {
+        $this->start = new \DateTime();
+    }
     /**
      * Get id
      *
@@ -131,7 +133,7 @@ class Events
      */
     public function setStartTime($startTime)
     {
-        $this->startTime = $startTime;
+        $this->startTime = new \DateTime($startTime);
 
         return $this;
     }

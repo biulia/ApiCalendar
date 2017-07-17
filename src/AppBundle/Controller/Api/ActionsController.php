@@ -14,10 +14,10 @@ class ActionsController extends FOSRestController  {
     public function addAction(Request $request)
     {
         /*  Body->postman
+                param{date}->2017-07-04 00:00:00
             {
                 "name":"Birthday",
                 "description" : "Iulia's Birthday",
-                "date":"2017-10-30 00:00:00",
                 "startTime":"2017-10-30 00:00:00",
                 "endTime":"60",
                 "comment":"Buy cake",
@@ -30,12 +30,17 @@ class ActionsController extends FOSRestController  {
                 'csrf_protection' => false,
             ]);
             $form->submit($request->request->all());
+            $form->getData();
             $eventPost = $form->getData();
             $em = $this->getDoctrine()->getManager();
-            $event =  new Events();
-            $event->setStartTime(new \DateTime($request->request->get('start_time')));
             $em->persist($eventPost);
             $em->flush();
+            if(!empty($eventPost->getId())){
+                $event = $this->getDoctrine()->getManager();
+                $updateStartTime = $event->getRepository('AppBundle:Events')->find(intval($eventPost->getId()));
+                $updateStartTime->setStartTime('2017-10-30');
+                $event->flush();
+            }
             return $this->apiResponse('Inserted',Response::HTTP_CREATED,"AppBundle:Events:addEvent.html.twig");
         }
         return $this->apiResponse();
@@ -43,19 +48,10 @@ class ActionsController extends FOSRestController  {
 
     public function selectAction ()
     {
-        $em = $this->getDoctrine()->getManager();
-        $query = $em->createQuery(
-                        'SELECT e
-                FROM AppBundle:Events e
-                WHERE 1=1
-                ORDER BY e.startTime ASC');
-        $products = $query->getResult();;
-        /**
-         * I would have use this one (but from some reason i have to make some work around to actualy work, anyway i will look into it later)
-         *  $eventsResult = $this->getDoctrine()->getRepository('AppBundle:Events')->findBy(array('startTime'=>'ASC'))
-         */
-        if (!empty($products)) {
-            return $this->apiResponse($products,Response::HTTP_OK,"AppBundle:Events:addEvent.html.twig");
+
+        $eventsResult = $this->getDoctrine()->getRepository('AppBundle:Events')->findBy(array(),array('startTime'=>'ASC'));
+        if (!empty($eventsResult)) {
+            return $this->apiResponse($eventsResult,Response::HTTP_OK,"AppBundle:Events:addEvent.html.twig");
         }
         return $this->apiResponse();
 
