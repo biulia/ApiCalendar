@@ -1,6 +1,7 @@
 <?php
 
 namespace AppBundle\Repository;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * EventsRepository
@@ -10,4 +11,13 @@ namespace AppBundle\Repository;
  */
 class EventsRepository extends \Doctrine\ORM\EntityRepository
 {
+    public function isGranted($token)
+    {
+        //improvising a provisory "security" sistem :D
+        if($token !== '34342532243') {
+            return null;
+        }
+        return Response::HTTP_OK;
+    }
+
 }

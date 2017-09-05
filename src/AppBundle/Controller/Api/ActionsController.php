@@ -2,12 +2,12 @@
 
 namespace AppBundle\Controller\Api;
 
+use AppBundle\Repository\EventsRepository;
 use Symfony\Component\HttpFoundation\Response;
 use FOS\RestBundle\Controller\FOSRestController;
 use AppBundle\Form\EventsType;
-use AppBundle\Entity\Events;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request;
-
 
 class ActionsController extends FOSRestController  {
 
@@ -21,92 +21,104 @@ class ActionsController extends FOSRestController  {
                 "startTime":"2017-10-30 00:00:00",
                 "endTime":"60",
                 "comment":"Buy cake",
-                "location":"Cluj-Napoa"
+                "location":"Cluj-Napoca"
             }
     */
-        $date = $request->get('date');
-        if(!empty($date)) {
+        try {
+            /** @var EventsRepository $eventsRepository */
+
+            $em = $this->getDoctrine()->getManager();
+            $eventsRepository = $em->getRepository('AppBundle:Events');
+
+            if (!$eventsRepository->isGranted('34342532243')) {
+                return $this->apiResponse('UNAUTHORIZED', Response::HTTP_UNAUTHORIZED, "AppBundle:Events:view.html.twig");
+            }
             $form = $this->createForm(EventsType::class, null, [
                 'csrf_protection' => false,
             ]);
             $form->submit($request->request->all());
             $form->getData();
             $eventPost = $form->getData();
-            $em = $this->getDoctrine()->getManager();
             $em->persist($eventPost);
             $em->flush();
-            if(!empty($eventPost->getId())){
-                $event = $this->getDoctrine()->getManager();
-                $updateStartTime = $event->getRepository('AppBundle:Events')->find(intval($eventPost->getId()));
-                $updateStartTime->setStartTime('2017-10-30');
-                $event->flush();
-            }
-            return $this->apiResponse('Inserted',Response::HTTP_CREATED,"AppBundle:Events:addEvent.html.twig");
+            $updateStartTime = $eventsRepository->find(intval($eventPost->getId()));
+            $updateStartTime->setStartTime($request->get('startTime')?$request->get('startTime') : null );
+            $em->persist($updateStartTime);
+            $em->flush();
+            return $this->apiResponse('inserted', Response::HTTP_CREATED, "AppBundle:Events:view.html.twig");
+        } catch (\Exception $exception) {
+            return $this->apiResponse('HTTP BAD REQUEST', Response::HTTP_BAD_REQUEST, "AppBundle:Events:view.html.twig");
         }
-        return $this->apiResponse();
     }
 
     public function selectAction ()
     {
-
-        $eventsResult = $this->getDoctrine()->getRepository('AppBundle:Events')->findBy(array(),array('startTime'=>'ASC'));
-        if (!empty($eventsResult)) {
-            return $this->apiResponse($eventsResult,Response::HTTP_OK,"AppBundle:Events:addEvent.html.twig");
+        $eventsResult = $this->getDoctrine()->getRepository('AppBundle:Events');
+        $events = null;
+        try {
+            $events = $eventsResult->findBy(array(),array('startTimes'=>'ASC'));
+            return $this->apiResponse($events,Response::HTTP_OK,"AppBundle:Events:view.html.twig");
+        } catch (\Exception $exception) {
+            throw new NotFoundHttpException(Response::HTTP_NOT_FOUND);
         }
-        return $this->apiResponse();
-
     }
-    public function selectOneAction ($id)
-    {
-        $eventResult = $this->getDoctrine()->getRepository('AppBundle:Events')->find($id);
-        if (!empty($eventResult)) {
-            return $this->apiResponse($eventResult,Response::HTTP_OK,"AppBundle:Events:addEvent.html.twig");
+    public function selectOneAction ($id) {
+
+        $eventResult = $this->getDoctrine()->getRepository('AppBundle:Events');
+        try {
+            $event = $eventResult->find($id);
+            return $this->apiResponse($event,Response::HTTP_OK,"AppBundle:Events:view.html.twig");
+        } catch (\Exception $exception) {
+            throw new NotFoundHttpException(sprintf('The event \'%s\' was not found.', $id));
         }
-        return $this->apiResponse();
     }
     public function updateHourEventAction ($id, Request $request)
     {
-        $eventResult = $this->getDoctrine()->getRepository('AppBundle:Events')->find($id);
-        if (empty($eventResult)) {
-            return $this->apiResponse();
-        }
-        $form = $this->createForm(EventsType::class, $eventResult, [
+        $event = $this->getDoctrine()->getRepository('AppBundle:Events')->find(array('id'=>$id));
+        try {
+            $form = $this->createForm(EventsType::class, $event, [
             'csrf_protection' => false,
-        ]);
-        $form->submit($request->request->all(), false);
-
-        if (!$form->isValid()) {
-            return $form;
+            ]);
+            $form->submit($request->request->all(), false);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            return $this->apiResponse('Updated event hour',Response::HTTP_OK,"AppBundle:Events:view.html.twig");
+        } catch (\Exception $exception) {
+            throw new NotFoundHttpException(sprintf('The event \'%s\' was not updated.', $id));
         }
-        $em = $this->getDoctrine()->getManager();
-        $em->flush();
-        return $this->apiResponse('Updated event hour',Response::HTTP_OK,"AppBundle:Events:addEvent.html.twig");
     }
     public function deleteAction ($id, Request $request)
     {
-        $eventResult = $this->getDoctrine()->getRepository('AppBundle:Events')->find($id);
-        if (empty($eventResult)) {
-            return $this->apiResponse();
+        $eventResult = $this->getDoctrine()->getRepository('AppBundle:Events');
+        try {
+            $event = $eventResult->find($id);
+            $em = $this->getDoctrine()->getManager();
+            $em->remove($event);
+            $em->flush();
+            return $this->apiResponse('Deleted',Response::HTTP_OK,"AppBundle:Events:view.html.twig");
+        } catch (\Exception $exception) {
+            throw new NotFoundHttpException(sprintf('The event \'%s\' was not found and has not been deleted', $id));
         }
-        $em = $this->getDoctrine()->getManager();
-        $em->remove($eventResult);
-        $em->flush();
-        return $this->apiResponse('Deleted',Response::HTTP_OK,"AppBundle:Events:addEvent.html.twig");
     }
     public function updateEventAction ($id, Request $request)
     {
-        $eventResult = $this->getDoctrine()->getRepository('AppBundle:Events')->find($id);
-        if (empty($eventResult)) {
-            return $this->apiResponse();
+        try{
+            $eventResult = $this->getDoctrine()->getRepository('AppBundle:Events')->find($id);
+            if (empty($eventResult)) {
+                return $this->apiResponse();
+            }
+            $form = $this->createForm(EventsType::class, $eventResult, [
+                'csrf_protection' => false,
+            ]);
+            $form->submit($request->request->all());
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            return $this->apiResponse('Updated',Response::HTTP_OK,"AppBundle:Events:view.html.twig");
+        } catch (\Exception $exception) {
+            throw new NotFoundHttpException(sprintf('The event \'%s\' was not found and has not been deleted', $id));
         }
-        $form = $this->createForm(EventsType::class, $eventResult, [
-            'csrf_protection' => false,
-        ]);
-        $form->submit($request->request->all());
-        $em = $this->getDoctrine()->getManager();
-        $em->flush();
-        return $this->apiResponse('Updated',Response::HTTP_OK,"AppBundle:Events:addEvent.html.twig");
     }
+
 
     public function apiResponse($message='', $statusCodes='', $template=''){
         if(empty($statusCodes) || empty($message)){
